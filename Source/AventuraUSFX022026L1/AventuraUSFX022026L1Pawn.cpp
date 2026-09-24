@@ -21,7 +21,7 @@ const FName AAventuraUSFX022026L1Pawn::FireRightBinding("FireRight");
 
 AAventuraUSFX022026L1Pawn::AAventuraUSFX022026L1Pawn()
 {	
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane"));
 	// Create the mesh component
 	ShipMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
 	RootComponent = ShipMeshComponent;
@@ -37,8 +37,8 @@ AAventuraUSFX022026L1Pawn::AAventuraUSFX022026L1Pawn()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when ship does
-	CameraBoom->TargetArmLength = 1200.f;
-	CameraBoom->SetRelativeRotation(FRotator(-80.f, 0.f, 0.f));
+	CameraBoom->TargetArmLength = 2500.f;
+	CameraBoom->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 
 	// Create a camera...
@@ -49,7 +49,7 @@ AAventuraUSFX022026L1Pawn::AAventuraUSFX022026L1Pawn()
 	// Movement
 	MoveSpeed = 1000.0f;
 	// Weapon
-	GunOffset = FVector(90.f, 0.f, 0.f);
+	GunOffset = FVector(250.f, 0.f, 0.f);
 	FireRate = 0.1f;
 	bCanFire = true;
 }
@@ -70,7 +70,7 @@ void AAventuraUSFX022026L1Pawn::Tick(float DeltaSeconds)
 	// Solo tomamos el input lateral (izquierda-derecha), ignoramos MoveForward
 	const float RightValue = GetInputAxisValue(MoveRightBinding);
 
-	const FVector MoveDirection = FVector(0.f, RightValue, 0.f).GetClampedToMaxSize(1.0f);
+	const FVector MoveDirection = FVector(RightValue, 0.f, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
 
 	if (Movement.SizeSquared() > 0.0f)
@@ -101,6 +101,11 @@ void AAventuraUSFX022026L1Pawn::FireShot(FVector FireDirection)
 	// If it's ok to fire again
 	if (bCanFire == true)
 	{
+		// Si ya hay una pelota viva, no crear otra
+		if (PelotaActiva != nullptr && IsValid(PelotaActiva))
+		{
+			return;
+		}
 		// If we are pressing fire stick in a direction
 		if (FireDirection.SizeSquared() > 0.0f)
 		{
@@ -112,7 +117,11 @@ void AAventuraUSFX022026L1Pawn::FireShot(FVector FireDirection)
 			if (World != nullptr)
 			{
 				// spawn the projectile
-				World->SpawnActor<AAventuraUSFX022026L1Projectile>(SpawnLocation, FireRotation);
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+				PelotaActiva = World->SpawnActor<AAventuraUSFX022026L1Projectile>(SpawnLocation, FireRotation, SpawnParams);
+
 			}
 
 			bCanFire = false;

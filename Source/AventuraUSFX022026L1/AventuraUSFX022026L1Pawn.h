@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "AventuraUSFX022026L1Pawn.generated.h"
 
+class AAventuraUSFX022026L1Projectile;
+
 UCLASS(Blueprintable)
 class AAventuraUSFX022026L1Pawn : public APawn
 {
@@ -27,9 +29,9 @@ public:
 	AAventuraUSFX022026L1Pawn();
 
 	/** Offset from the ships location to spawn projectiles */
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite )
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	FVector GunOffset;
-	
+
 	/* How fast the weapon will fire */
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float FireRate;
@@ -41,6 +43,8 @@ public:
 	/** Sound to play each time we fire */
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* FireSound;
+	UPROPERTY()
+	AAventuraUSFX022026L1Projectile* PelotaActiva;
 
 	// Begin Actor Interface
 	virtual void Tick(float DeltaSeconds) override;
@@ -78,4 +82,3 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 };
-

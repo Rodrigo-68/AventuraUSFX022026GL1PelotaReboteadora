@@ -26,6 +26,8 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Spawn")
     float IntervaloSpawn = 5.0f;
+    UPROPERTY(VisibleAnywhere)
+    class USceneComponent* RootScene;
 
 protected:
     virtual void BeginPlay() override;

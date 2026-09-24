@@ -6,6 +6,8 @@
 APlataformaSpawner::APlataformaSpawner()
 {
     PrimaryActorTick.bCanEverTick = false;
+    RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+    RootComponent = RootScene;
 }
 
 void APlataformaSpawner::BeginPlay()

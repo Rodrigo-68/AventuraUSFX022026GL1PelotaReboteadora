@@ -8,50 +8,75 @@
 #include "Engine/StaticMesh.h"
 #include "PlataformaDestructible.h"
 
-AAventuraUSFX022026L1Projectile::AAventuraUSFX022026L1Projectile() 
+AAventuraUSFX022026L1Projectile::AAventuraUSFX022026L1Projectile()
 {
-	// Static reference to the mesh to use for the projectile
+	UE_LOG(LogTemp, Warning, TEXT("Constructor de Projectile ejecutado"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickProjectile.TwinStickProjectile"));
 
-	// Create mesh component for the projectile sphere
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh0"));
 	ProjectileMesh->SetStaticMesh(ProjectileMeshAsset.Object);
 	ProjectileMesh->SetupAttachment(RootComponent);
 	ProjectileMesh->BodyInstance.SetCollisionProfileName("Projectile");
-	ProjectileMesh->OnComponentHit.AddDynamic(this, &AAventuraUSFX022026L1Projectile::OnHit);		// set up a notification for when this component hits something
+	ProjectileMesh->SetGenerateOverlapEvents(false);
+	ProjectileMesh->SetNotifyRigidBodyCollision(true);
+	ProjectileMesh->BodyInstance.bUseCCD = true;
+	ProjectileMesh->OnComponentHit.AddDynamic(this, &AAventuraUSFX022026L1Projectile::OnHit);
 	RootComponent = ProjectileMesh;
 
-	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement0"));
 	ProjectileMovement->UpdatedComponent = ProjectileMesh;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 1800.f;
+	ProjectileMovement->MaxSpeed = 1800.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = false;
-	ProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
+	ProjectileMovement->ProjectileGravityScale = 0.f;
 
-	// --- NUEVO: que rebote indefinidamente en vez de destruirse ---
+	// IMPORTANTE: debe quedar en true para que el componente no se detenga al chocar.
+	// El rebote real lo controla manualmente OnHit() con MirrorByVector.
 	ProjectileMovement->bShouldBounce = true;
-	ProjectileMovement->Bounciness = 1.0f;
+	ProjectileMovement->Bounciness = 0.98f;
 	ProjectileMovement->Friction = 0.0f;
 	ProjectileMovement->bBounceAngleAffectsFriction = false;
 
-	// Die after 3 seconds by default
 	InitialLifeSpan = 0.f;
 }
 
 void AAventuraUSFX022026L1Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Projectile::OnHit disparado"));
+
 	if (OtherActor != nullptr && OtherActor != this)
 	{
-		// Si choca con una PlataformaDestructible, esa plataforma se destruye
+		UE_LOG(LogTemp, Warning, TEXT("Pelota golpeo a: %s (clase: %s)"), *OtherActor->GetName(), *OtherActor->GetClass()->GetName());
+
 		if (APlataformaDestructible* Destructible = Cast<APlataformaDestructible>(OtherActor))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Cast a Destructible exitoso -> destruyendo %s"), *Destructible->GetName());
 			Destructible->Destroy();
+			return;
 		}
-		// Si choca con PlataformaIndestructible o una pared: no hacemos nada.
-		// El rebote ya lo maneja automáticamente ProjectileMovementComponent (bShouldBounce).
-	}
 
-	// IMPORTANTE: ya NO llamamos Destroy() aquí — la pelota nunca se destruye a sí misma.
+		// Rebote manual: refleja la velocidad respecto a la normal del impacto,
+		// con una pequeï¿½a variaciï¿½n aleatoria para evitar bucles cerrados en esquinas.
+		FVector CurrentVelocity = ProjectileMovement->Velocity;
+
+		// En golpes muy rasantes o de barrido rapido, Hit.ImpactNormal puede llegar
+		// como vector cero; en ese caso usamos Hit.Normal como respaldo para no perder el rebote.
+		FVector ImpactNormal = Hit.ImpactNormal;
+		if (!ImpactNormal.Normalize())
+		{
+			ImpactNormal = Hit.Normal;
+			ImpactNormal.Normalize();
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Rebote: normal=%s velocidadPrevia=%s"), *ImpactNormal.ToString(), *CurrentVelocity.ToString());
+
+		FVector ReflectedVelocity = CurrentVelocity.MirrorByVector(ImpactNormal);
+
+		float AnguloExtra = FMath::RandRange(-5.0f, 5.0f);
+		ReflectedVelocity = ReflectedVelocity.RotateAngleAxis(AnguloExtra, FVector(0.f, 0.f, 1.f));
+
+		ProjectileMovement->Velocity = ReflectedVelocity;
+
+		UE_LOG(LogTemp, Warning, TEXT("Rebote: velocidadNueva=%s"), *ReflectedVelocity.ToString());
+	}
 }

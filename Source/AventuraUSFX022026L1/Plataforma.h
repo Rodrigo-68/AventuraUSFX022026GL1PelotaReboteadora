@@ -28,6 +28,7 @@ public:
 
 	ETipoPlataforma tipoPlataforma;
 
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	UStaticMeshComponent* mallaPlataforma;
 
 protected:

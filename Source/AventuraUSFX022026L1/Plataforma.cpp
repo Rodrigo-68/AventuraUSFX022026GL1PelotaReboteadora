@@ -14,6 +14,9 @@ APlataforma::APlataforma()
 
 	// Create mesh component for the projectile sphere
 	mallaPlataforma = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MallaPlataforma"));
+	mallaPlataforma->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	mallaPlataforma->SetCollisionProfileName(TEXT("BlockAll"));
+	mallaPlataforma->SetNotifyRigidBodyCollision(true); // <-- NUEVO: garantiza que ambas subclases generen OnHit
 	RootComponent = mallaPlataforma;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> PlataformaMeshAsset(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
@@ -56,10 +59,10 @@ void APlataforma::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Caída recta hacia abajo (Lab 01)
+	// Caï¿½da recta hacia abajo (Lab 01)
 	AddActorWorldOffset(FVector(0.f, 0.f, -VelocidadCaida * DeltaTime), true);
 
-	// Se destruye si cae fuera del área jugable (evita acumulación infinita)
+	// Se destruye si cae fuera del ï¿½rea jugable (evita acumulaciï¿½n infinita)
 	if (GetActorLocation().Z < -200.0f)
 	{
 		Destroy();
@@ -68,7 +71,7 @@ void APlataforma::Tick(float DeltaTime)
 
 	TiempoTranscurrido += DeltaTime;
 
-	/* ---- BLOQUE DESACTIVADO: movimiento cíclico del laboratorio anterior (MovingPlataform) ----
+	/* ---- BLOQUE DESACTIVADO: movimiento cï¿½clico del laboratorio anterior (MovingPlataform) ----
 	   Este bloque usa SetActorLocation sin sweep y puede teletransportar la plataforma
 	   dentro de una pared, causando "intersecting geometry". No aplica al Lab 01.
 
