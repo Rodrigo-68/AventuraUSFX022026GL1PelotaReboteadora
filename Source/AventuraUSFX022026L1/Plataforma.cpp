@@ -63,46 +63,12 @@ void APlataforma::Tick(float DeltaTime)
 	AddActorWorldOffset(FVector(0.f, 0.f, -VelocidadCaida * DeltaTime), true);
 
 	// Se destruye si cae fuera del �rea jugable (evita acumulaci�n infinita)
-	if (GetActorLocation().Z < -200.0f)
+	/*if (GetActorLocation().Z < -200.0f)
 	{
 		Destroy();
 		return;
-	}
+	*/
 
 	TiempoTranscurrido += DeltaTime;
 
-	/* ---- BLOQUE DESACTIVADO: movimiento c�clico del laboratorio anterior (MovingPlataform) ----
-	   Este bloque usa SetActorLocation sin sweep y puede teletransportar la plataforma
-	   dentro de una pared, causando "intersecting geometry". No aplica al Lab 01.
-
-	float TiempoCiclo = FMath::Fmod(TiempoTranscurrido, 15.0f);
-
-	if (TiempoCiclo < 5.0f)
-	{
-		return;
-	}
-
-	if (TiempoCiclo >= 5.0f && TiempoCiclo < 15.0f)
-	{
-		posicionActual = GetActorLocation();
-
-		if (posicionActual.X >= movimientoLimitesMaximos.X || posicionActual.X <= movimientoLimitesMinimos.X) {
-			movimientoDireccion.X *= -1.0f;
-		}
-		if (posicionActual.Y >= movimientoLimitesMaximos.Y || posicionActual.Y <= movimientoLimitesMinimos.Y) {
-			movimientoDireccion.Y *= -1.0f;
-		}
-		if (posicionActual.Z >= movimientoLimitesMaximos.Z || posicionActual.Z <= movimientoLimitesMinimos.Z) {
-			movimientoDireccion.Z *= -1.0f;
-		}
-
-		FVector posicionNueva = posicionActual + (movimientoDireccion * movimientoVelocidades * DeltaTime);
-		SetActorLocation(posicionNueva);
-	}
-
-	if (TiempoCiclo >= 10.0f && TiempoCiclo < 15.0f)
-	{
-		return;
-	}
-	*/
 }
